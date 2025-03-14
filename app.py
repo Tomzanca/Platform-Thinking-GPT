@@ -5,18 +5,35 @@ app = Flask(__name__)
 
 # 🔹 Path to the Excel database file
 
+import dropbox
+DROPBOX_APP_KEY = "o20t0l0x6zy8x3q"
+DROPBOX_APP_SECRET = "q8iww963hh4odop"
+DROPBOX_REFRESH_TOKEN = "4zgruw-6AbIAAAAAAAAAAVCoMg0tPn6dON4DtERSLqGxr7ERBI7NG2yG07El7zHr"
+DROPBOX_FILE_PATH = "Applicazioni/platform-thinking-gpt/S&P500_140_API GPT_Only Metadata.xlsx"
+
+def download_file_from_dropbox():
+    """Downloads the Excel file from Dropbox."""
+    try:
+        dbx = dropbox.Dropbox(
+            app_key=DROPBOX_APP_KEY,
+            app_secret=DROPBOX_APP_SECRET,
+            oauth2_refresh_token=DROPBOX_REFRESH_TOKEN
+        )
+        metadata, res = dbx.files_download(DROPBOX_FILE_PATH)
+        return pd.read_excel(res.content)
+    except Exception as e:
+        print(f"❌ Error downloading file from Dropbox: {e}")
+        return None
 def load_cases():
+    """Loads the case study database from Dropbox."""
+    return download_file_from_dropbox()
     """Loads the case study database from the Excel file and prints debug info."""
     try:
-        print(f"🔹 Checking file path: {EXCEL_FILE_PATH}")  # Debugging step
 
         # Check if file exists
-        if not os.path.exists(EXCEL_FILE_PATH):
-            print(f"❌ ERROR: File not found at {EXCEL_FILE_PATH}")
             return None
 
         # Try loading the file
-        df = pd.read_excel(EXCEL_FILE_PATH)
         print("✅ Loaded Excel file successfully. Columns:", df.columns.tolist())  # Debugging step
         return df
     except Exception as e:

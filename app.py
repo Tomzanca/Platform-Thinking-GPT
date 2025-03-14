@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify
 import pandas as pd
+import dropbox
 
 app = Flask(__name__)
 
 # 🔹 Path to the Excel database file
-
-import dropbox
 DROPBOX_APP_KEY = "o20t0l0x6zy8x3q"
 DROPBOX_APP_SECRET = "q8iww963hh4odop"
 DROPBOX_REFRESH_TOKEN = "4zgruw-6AbIAAAAAAAAAAVCoMg0tPn6dON4DtERSLqGxr7ERBI7NG2yG07El7zHr"
@@ -24,27 +23,22 @@ def download_file_from_dropbox():
     except Exception as e:
         print(f"❌ Error downloading file from Dropbox: {e}")
         return None
+
 def load_cases():
     """Loads the case study database from Dropbox."""
-    return download_file_from_dropbox()
-    """Loads the case study database from the Excel file and prints debug info."""
     try:
-
-        # Check if file exists
+        df = download_file_from_dropbox()
+        if df is None:
             return None
-
-        # Try loading the file
-            print("✅ Loaded Excel file successfully. Columns:", df.columns.tolist())  # Debugging step
+        print("✅ Loaded Excel file successfully. Columns:", df.columns.tolist())  # Debugging step
         return df
     except Exception as e:
         print(f"❌ Error loading Excel file: {e}")  # Debugging step
         return None
 
-
 @app.route('/start_search', methods=['GET'])
 def start_search():
     """Initiates a case study search and presents filter options."""
-    
     df = load_cases()
     if df is None:
         return jsonify({"error": "Failed to load database"}), 500
@@ -69,7 +63,6 @@ def start_search():
 @app.route('/refine_search', methods=['GET'])
 def refine_search():
     """Refines the search by applying additional filters."""
-    
     df = load_cases()
     if df is None:
         return jsonify({"error": "Failed to load database"}), 500
@@ -87,7 +80,7 @@ def refine_search():
     if hack_type:
         df = df[df["HACK"].str.contains(hack_type, case=False, na=False)]
     if idle_assets_filter and idle_assets_filter in ["Data", "Relationships", "Know How", "Physical Assets"]:
-        df = df[df[idle_assets_filter] == 1]  # Filtering only cases where the category is present
+        df = df[df[idle_assets_filter] == 1]
 
     if df.empty:
         return jsonify({"error": "No cases found matching your filters."}), 404
@@ -114,7 +107,6 @@ def refine_search():
 @app.route('/get_case_summaries', methods=['GET'])
 def get_case_summaries():
     """Retrieves case summaries for the selected filters."""
-    
     df = load_cases()
     if df is None:
         return jsonify({"error": "Failed to load database"}), 500
@@ -138,36 +130,12 @@ def get_case_summaries():
     if df.empty:
         return jsonify({"error": "No cases found matching your filters."}), 404
 
-    # Generate case summaries
     case_summaries = df[["Company", "Industry1stOrder", "Strategy", "HACK", "TypeOfPlatform", "Short Case Text"]].to_dict(orient="records")
 
     return jsonify({
         "case_summaries": case_summaries,
         "total_results": len(df),
         "message": "Here are the case summaries. Would you like to see a full case, go back, or refine further?"
-    })
-
-@app.route('/get_full_case', methods=['GET'])
-def get_full_case():
-    """Retrieves the full case details for a selected company."""
-    
-    df = load_cases()
-    if df is None:
-        return jsonify({"error": "Failed to load database"}), 500
-
-    company_name = request.args.get('company')
-
-    if not company_name:
-        return jsonify({"error": "Please provide a company name to retrieve full case details."}), 400
-
-    case = df[df["Company"].str.contains(company_name, case=False, na=False)]
-
-    if case.empty:
-        return jsonify({"error": "No matching case found for the given company name."}), 404
-
-    return jsonify({
-        "Company": company_name,
-        "Full Case Text": case.iloc[0]["Full Case Text"]
     })
 
 if __name__ == '__main__':

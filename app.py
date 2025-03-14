@@ -4,12 +4,6 @@ import pandas as pd
 app = Flask(__name__)
 
 # 🔹 Path to the Excel database file
-<<<<<<< HEAD
-EXCEL_FILE_PATH = "S&P500_140_API GPT_Only Metadata.xlsx"
-=======
-EXCEL_FILE_PATH = "/Users/tommaso/Dropbox (Personal)/Applicazioni/platform-thinking-gpt/S&P500_140_API GPT_Only Metadata.xlsx"
-import os
->>>>>>> ed16004 (Final working version with correct database loading and filtering)
 
 def load_cases():
     """Loads the case study database from the Excel file and prints debug info."""

@@ -34,7 +34,7 @@ def load_cases():
             return None
 
         # Try loading the file
-        print("✅ Loaded Excel file successfully. Columns:", df.columns.tolist())  # Debugging step
+            print("✅ Loaded Excel file successfully. Columns:", df.columns.tolist())  # Debugging step
         return df
     except Exception as e:
         print(f"❌ Error loading Excel file: {e}")  # Debugging step
